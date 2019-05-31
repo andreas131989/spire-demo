@@ -629,9 +629,6 @@ spec:
               value: "/var/run/nodeagent"
           securityContext:
             privileged: true
-          resources:
-            requests:
-              cpu: 250m
           livenessProbe:
             httpGet:
               path: /liveness

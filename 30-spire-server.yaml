@@ -14,6 +14,29 @@ metadata:
 ---
 
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv-1
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/disks/vol1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - microk8s-vm
+
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: spire-server
@@ -21,6 +44,15 @@ metadata:
 type: Opaque
 data:
   bootstrap.key: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1JR2tBZ0VCQkRBZzJMYnVsWHpRWDFORisyRGkwUkt6TVdmRUdpb0JoaC9mRnB4N3lPRXFrYS8vVHBhZVUzTzUKUUpSWlhkV0hLdWFnQndZRks0RUVBQ0toWkFOaUFBUmFNSDZkSVpMRWhpTE9kdnpqRzdsWVlObVB6U2N2dGJWegpmTi9qeGFITFNacnRqdVlJRXJOOUNTdUFPQzRqaVBSbjdUKzBNZit2eUMwNjBzdXNpbTR6QlllaDdpOXRVRVcxCjdXK1BwZTNwWjRUeVZmQndLOHV6K1p5YTgrcFVyMk09Ci0tLS0tRU5EIEVDIFBSSVZBVEUgS0VZLS0tLS0K
+
+---
+
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
 
 ---
 
@@ -58,7 +90,7 @@ data:
         plugin_data {
           clusters = {
             "demo-cluster" = {
-              service_account_key_file = "/run/k8s-certs/sa.pub"
+              use_token_review_api_validation = true
               service_account_whitelist = ["spire:spire-agent"]
             }
           }
@@ -135,9 +167,6 @@ spec:
             - name: spire-data
               mountPath: /run/spire/data
               readOnly: false
-            - name: k8s-sa-cert
-              mountPath: /run/k8s-certs/sa.pub
-              readOnly: true
           livenessProbe:
             tcpSocket:
               port: 8081
@@ -152,10 +181,6 @@ spec:
         - name: spire-secrets
           secret:
             secretName: spire-server
-        - name: k8s-sa-cert
-          hostPath:
-            path: /var/lib/minikube/certs/sa.pub
-            type: File
   volumeClaimTemplates:
     - metadata:
         name: spire-data
@@ -163,6 +188,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
+        storageClassName: "local-storage"
         resources:
           requests:
             storage: 1Gi

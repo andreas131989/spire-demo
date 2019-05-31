@@ -1,2 +1,4 @@
 #!/bin/bash -x
-google-chrome http://$(minikube ip):31000
+
+##Run multipass list to get the ip of your microk8s vm
+curl $microk8sip:31000
