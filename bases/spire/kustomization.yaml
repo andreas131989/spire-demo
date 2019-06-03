@@ -1,0 +1,5 @@
+resources:
+  - 29-provisioner-generated.yaml
+  - 30-spire-server.yaml
+  - 40-authorization.yaml
+  - 50-spire-agent.yaml
