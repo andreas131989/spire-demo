@@ -30,10 +30,10 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions:
-        - key: kubernetes.io/hostname
+        - key: kubernetes.io/os
           operator: In
           values:
-          - microk8s-vm
+          - linux
 
 ---
 apiVersion: v1
